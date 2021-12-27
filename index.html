@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bouncing Ball Game</title>
+    <script src="ball.js"></script>
+    <script src="bar.js"></script>
+</head>
+<style>
+    .container {
+        margin-left: 10%;
+        margin-top: 5%;
+        height: 80%;
+        width: 80%;
+        border-color: yellow;
+        background-color: blue;
+        color: #00BCD4;
+        border-radius: 30px;
+        box-shadow: 0px 0px 50px #101010;
+        padding: 15px;
+        font-size: 30px;
+    }
+
+    canvas {
+        background: yellow;
+        display: block;
+        height: 40%;
+        width: 50%;
+        margin: 0 auto;
+        border: 2px solid blueviolet;
+    }
+</style>
+<body>
+<div class="container">
+    <canvas id="myCanvas" width="320px" height="300"></canvas>
+</div>
+<script>
+    let canvas = document.getElementById("myCanvas");
+    let ctx = canvas.getContext('2d');
+    let ball = new Ball(160, 0, 10, 'red', 5, -5); //khai báo bóng.
+    let bar = new Bar(50, 295, 100, 5, 30, 'green'); // khai báo thanh bar.
+    let interval = -1;
+    let score = 0;
+    let image = new Image();
+    image.src = 'img/background.png';
+    ball.drawBall(ctx); // gọi hàm vẽ bóng.
+    bar.drawBar(ctx);  // gọi hàm vẽ thanh đỡ.
+    // hàm để thanh bar di chuyển:
+    function moveBar(event) {
+        switch (event.keyCode) {
+            case 37 : {     // sang trái
+                if (bar._x <= 0) {
+                    return;
+                }
+                bar.moveLeft();
+                break;
+            }
+            case 39 : {    // sang phải
+                if (bar._x + bar._width >= canvas.width) {
+                    return;
+                }
+                bar.moveRight();
+                break;
+            }
+            case 69 : {   // Phím E tăng tốc độ thanh bar lên 1.5
+                bar.upSpeed();
+                break;
+            }
+            case 82 : {    // Phím R giảm tốc độ thanh bar đi 1.5
+                bar.downSpeed();
+                break;
+            }
+        }
+        updateCanvas();
+    }
+
+    // Hàm xóa Canvas:
+    function clearCanvas() {
+        ctx.clearRect(0, 0, 320, 300);
+    }
+
+    // Hàm update Canvas :
+    function updateCanvas() {
+        clearCanvas();
+        drawBackground();
+        drawScore();
+        ball.drawBall(ctx);
+        bar.drawBar(ctx);
+
+
+    }
+
+    // Hàm bóng di chuyển :
+    function moveBall() {
+        ball._x += ball._dx;
+        ball._y += ball._dy;
+        if (score === 5) { // tăng độ khó khi được 5 đ
+            ball._dx = 8;
+            ball._dy = 8;
+            ball._color = 'black';
+        }
+        if (score === 10) { // tăng độ khó khi 10đ
+            bar._width = 80;
+        }
+        if (score === 20) {  // tăng độ khó khi 20 điểm
+            bar._width = 60;
+        }
+        updateCanvas();
+        if (ball._x + ball._dx > canvas.width || ball._x + ball._dx < 0) { // điều kiện bóng di chuyển đập 2 bên tường
+            ball._dx = -ball._dx;
+        }
+        if (ball._y + ball._dy > canvas.height || ball._y + ball._dy < 0) {  // điều kiện bóng di chuyển đập truc y
+            ball._dy = -ball._dy;
+        }
+        if (ball._y + ball._dy > bar._y && ball._x > bar._x && ball._x < bar._x + bar._width) { // đập thanh bar
+            ball._dy = -ball._dy;
+            score++;
+        }
+        if (checkCollision()) {
+            cancelAnimationFrame(interval);
+            alert("Game Over !!!!!!" + "Điểm của bạn là: " + score);
+        } else {
+            interval = requestAnimationFrame(moveBall);
+        }
+    }
+
+    // Hàm check điều kiện thua.
+    function checkCollision() {
+        if (ball._y > bar._y) { // đập thanh bar
+            return true;
+        }
+    }
+    // Hàm vẽ ô điểm
+    function drawScore() {
+        ctx.fillStyle = "blue";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText("Score: " + score, (canvas.width/2)-160, (canvas.height / 2) -135);
+    }
+    //Hàm ảnh back ground
+    function drawBackground() {
+        ctx.drawImage(image,0,50,320,200);
+    }
+
+    moveBall();
+    document.addEventListener('keydown', moveBar)
+</script>
+</body>
+</html>
